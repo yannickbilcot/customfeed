@@ -1,0 +1,24 @@
+--- a/Makefile
++++ b/Makefile
+@@ -93,6 +93,9 @@ else
+             detected_openhome_architecture = armel
+         endif
+     endif
++    ifeq ($(gcc_machine),arm-openwrt-linux-uclibcgnueabi)
++        detected_openhome_architecture = armel
++    endif
+     ifeq ($(gcc_machine),arm-linux-gnueabihf)
+       detected_openhome_architecture = armhf
+     endif
+@@ -542,9 +545,9 @@ copy_build_includes:
+ 	$(cp) Os/*.h $(inc_build)/OpenHome
+ 	$(cp) Os/*.inl $(inc_build)/OpenHome
+ 
+-install : install-pkgconf install-libs install-includes
++install : install-libs install-includes
+ 
+-uninstall : uninstall-pkgconf uninstall-libs uninstall-includes
++uninstall : uninstall-libs uninstall-includes
+ 
+ install-pkgconf : tt
+ 	@echo "ERROR: no support for (un)install-pckconf yet"

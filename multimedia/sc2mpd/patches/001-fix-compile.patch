@@ -1,0 +1,126 @@
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -6,7 +6,7 @@ OTHERLIBS=@OTHERLIBS@
+ OHBTYPE=Release
+ 
+ # Top ohSongcast dir
+-TOPSC = $(TOPOH)ohSongcast/
++TOPSC = $(TOPOH)ohsongcast-2016-01-26/
+ # Internal path to obj inside ohNet, ohSongcast etc.
+ OBJIPATH = Build/Obj/Posix/$(OHBTYPE)/
+ # ohSongcast other objects
+@@ -16,9 +16,9 @@ TOPSCO=$(TOPSC)$(OBJIPATH)
+ AM_CPPFLAGS = -DDEBUG -g -Wall \
+             -DDATADIR=\"${pkgdatadir}\" -DCONFIGDIR=\"${sysconfdir}\" \
+             -DPACKAGE_VERSION=\"${PACKAGE_VERSION}\" \
+-            -I$(TOPOH)ohNet/Build/Include/ \
+-            -I$(TOPOH)ohNetGenerated/Build/Include/ \
+-            -I$(TOPOH)ohTopology/build/Include/  \
++            -I$(TOPOH)ohnet-1.6.2063/Build/Include/ \
++            -I$(TOPOH)ohnetgenerated-1.6.1928/Build/Include/ \
++            -I$(TOPOH)ohtopology-1.4.1710/build/Include/  \
+             -I$(TOPSC)
+ if WAVSC2
+ AM_CPPFLAGS += \
+@@ -41,10 +41,10 @@ OHCCFLAGS = -D_GNU_SOURCE -D_REENTRANT -
+ OTHEROSC2 = $(TOPSCO)/Ohm.o $(TOPSCO)/OhmMsg.o $(TOPSCO)/OhmSocket.o \
+              $(TOPSCO)/OhmReceiver.o $(TOPSCO)/OhmProtocolMulticast.o \
+              $(TOPSCO)/OhmProtocolUnicast.o \
+-             $(TOPOH)ohNetGenerated/$(OBJIPATH)DvAvOpenhomeOrgReceiver1.o
++             $(TOPOH)ohnetgenerated-1.6.1928/$(OBJIPATH)DvAvOpenhomeOrgReceiver1.o
+ 
+-sc2mpd_LDADD = $(OTHEROSC2) $(TOPOH)ohNet/$(OBJIPATH)libohNetCore.a \
+-     $(TOPOH)ohNet/$(OBJIPATH)libTestFramework.a $(OTHERLIBS)
++sc2mpd_LDADD = $(OTHEROSC2) $(TOPOH)ohnet-1.6.2063/$(OBJIPATH)libohNetCore.a \
++     $(TOPOH)ohnet-1.6.2063/$(OBJIPATH)libTestFramework.a $(OTHERLIBS)
+ 
+ sc2mpd_SOURCES = \
+      ohbuild.sh \
+@@ -77,10 +77,10 @@ endif
+ 
+ OTHEROMP2 = $(TOPSCO)/Ohm.o $(TOPSCO)/OhmMsg.o $(TOPSCO)/OhmSocket.o \
+              $(TOPSCO)/OhmSender.o \
+-             $(TOPOH)ohNetGenerated/$(OBJIPATH)DvAvOpenhomeOrgSender1.o
++             $(TOPOH)ohnetgenerated-1.6.1928/$(OBJIPATH)DvAvOpenhomeOrgSender1.o
+ 
+-mpd2sc_LDADD = $(OTHEROMP2) $(TOPOH)ohNet/$(OBJIPATH)libohNetCore.a \
+-     $(TOPOH)ohNet/$(OBJIPATH)libTestFramework.a $(OTHERLIBS)
++mpd2sc_LDADD = $(OTHEROMP2) $(TOPOH)ohnet-1.6.2063/$(OBJIPATH)libohNetCore.a \
++     $(TOPOH)ohnet-1.6.2063/$(OBJIPATH)libTestFramework.a $(OTHERLIBS)
+ 
+ mpd2sc_CPPFLAGS = -I$(top_srcdir)/sc2src $(AM_CPPFLAGS)
+ mpd2sc_SOURCES = \
+--- a/mpd2src/wavreader.h
++++ b/mpd2src/wavreader.h
+@@ -20,6 +20,8 @@
+ 
+ #include "audioreader.h"
+ 
++#include <stdio.h>
++#include <stdlib.h>
+ #include <string>
+ 
+ // This just somewhat encapsulates the code in the original
+--- a/sc2src/smallut.cpp
++++ b/sc2src/smallut.cpp
+@@ -19,6 +19,7 @@
+ #ifdef BUILDING_RECOLL
+ #include "autoconfig.h"
+ #else
++#include "conf_post.h"
+ #include "config.h"
+ #endif
+ 
+@@ -1106,7 +1107,7 @@ void catstrerror(string *reason, const c
+     // At worse we get no message at all here.
+     errbuf[0] = 0;
+     // We don't use ret, it's there to silence a cc warning
+-    char *ret = (char *)strerror_r(_errno, errbuf, ERRBUFSZ);
++    strerror_r(_errno, errbuf, ERRBUFSZ);
+     reason->append(errbuf);
+ #endif
+ }
+--- a/mpd2src/fiforeader.cpp
++++ b/mpd2src/fiforeader.cpp
+@@ -25,6 +25,7 @@
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <string.h>
++#include <stdlib.h>
+ 
+ #include "log.h"
+ #include "audioutil.h"
+--- a/sc2src/rcvqueue.h
++++ b/sc2src/rcvqueue.h
+@@ -18,10 +18,11 @@
+ #define _RCVQUEUE_H_INCLUDED_
+ 
+ #include "workqueue.h"
++#include <stdlib.h>
+ 
+-/* 
++/*
+  * The audio messages which get passed between the songcast receiver
+- * and the http server part. We could probably use ohSongcast own audio 
++ * and the http server part. We could probably use ohSongcast own audio
+  * messages, but I prefer to stop the custom type usage asap.
+  */
+ class AudioMessage {
+@@ -30,7 +31,7 @@ public:
+     // ownership. The caller MUST NOT free it. Its size must be at
+     // least (bits/8) * chans * samples
+     AudioMessage(unsigned int bits, unsigned int channels, unsigned int frames,
+-                 unsigned int sampfreq, char *buf, unsigned int allocbytes) 
++                 unsigned int sampfreq, char *buf, unsigned int allocbytes)
+         : m_bits(bits), m_chans(channels), m_freq(sampfreq),
+           m_bytes(buf ? (bits/8) * channels * frames : 0),
+           m_allocbytes(allocbytes), m_buf(buf), m_curoffs(0) {
+@@ -88,7 +89,7 @@ public:
+     void *(*worker)(void *);
+ };
+ 
+-extern void copyswap(unsigned char *dest, const unsigned char *src, 
++extern void copyswap(unsigned char *dest, const unsigned char *src,
+                      unsigned int bytes, unsigned int bits);
+ 
+ extern AudioEater httpAudioEater;

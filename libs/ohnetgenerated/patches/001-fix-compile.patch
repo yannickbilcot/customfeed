@@ -1,0 +1,46 @@
+--- a/Makefile
++++ b/Makefile
+@@ -76,6 +76,9 @@ else
+     ifeq ($(gcc_machine),arm-linux-gnueabi)
+       detected_openhome_architecture = armel
+     endif
++    ifeq ($(gcc_machine),arm-openwrt-linux-uclibcgnueabi)
++        detected_openhome_architecture = armel
++    endif
+     ifeq ($(gcc_machine),arm-linux-gnueabihf)
+       detected_openhome_architecture = armhf
+     endif
+@@ -335,6 +338,7 @@ java_cflags = -fexceptions -Wall $(versi
+ jarflags = cf
+ dirsep = /
+ prefix = /usr/local
++ohNetLibDir=$(prefix)/lib/ohNet
+ installlibdir = $(prefix)/lib/ohNet
+ installincludedir = $(prefix)/include/ohNet
+ installpkgconfdir = $(prefix)/lib/pkgconfig
+@@ -404,6 +408,25 @@ copy_build_includes:
+ 	$(cp) OpenHome/Net/Bindings/Cpp/ControlPoint/Proxies/*.h $(header_install)/OpenHome/Net/Cpp
+ 	$(cp) OpenHome/Net/Bindings/Cpp/Device/Providers/*.h $(header_install)/OpenHome/Net/Cpp
+ 
++install : install-libs install-includes
++
++uninstall : uninstall-libs uninstall-includes
++
++install-libs :
++	$(mkdir) $(installlibdir)
++	$(cp) $(objdir)* $(installlibdir) 
++
++install-includes :
++	$(mkdir) $(installincludedir)
++	$(cp) -r Build/Include/* $(installincludedir) 
++
++uninstall-libs :
++	$(rmdir) $(installlibdir)
++
++uninstall-includes :
++	$(rmdir) $(installincludedir)
++
++
+ java_packages = ohnet \
+ 				openhome.net.controlpoint \
+ 				openhome.net.controlpoint.proxies \
