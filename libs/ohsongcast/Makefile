@@ -27,7 +27,8 @@ DEPENDS:= +ohtopology +ohnetgenerated
 endef
 
 define Package/ohsongcast/description
-  OpenHome OhNet Generated proxies and providers for ohMedia and UPnP:AV services.
+  OpenHome ohSongcast can be used to provide a virtual soundcard which sends a device's
+audio output to another device which implements the OpenHome Receiver service
 endef
 
 TARGET_CFLAGS += $(FPIC)
@@ -43,6 +44,10 @@ define Build/Compile
 		$(TARGET_CONFIGURE_OPTS) \
 		CFLAGS="$(TARGET_CFLAGS)" \
 		$(MAKE_FLAGS) release=1 Receiver WavSender
+endef
+
+define Package/ohsongcast/install
+	$(Package/Install/Default)
 endef
 
 $(eval $(call BuildPackage,ohsongcast))
